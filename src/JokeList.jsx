@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
+import Joke from './Joke';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import './JokeList.css';
 
 export class JokeList extends Component {
@@ -16,10 +18,17 @@ export class JokeList extends Component {
       let res = await axios.get('https://icanhazdadjoke.com/', {
         headers: { Accept: 'application/json' }
       });
-      jokes.push(res.data.joke);
+      jokes.push({ id: uuidv4(), text: res.data.joke, votes: 0 });
     }
     this.setState({ jokes: jokes });
-    console.log(this.state.jokes);
+  }
+
+  handleVote(id, delta) {
+    this.setState(st => ({
+      jokes: st.jokes.map(j =>
+        j.id === id ? { ...j, votes: j.votes + delta } : j
+      )
+    }));
   }
 
   render() {
@@ -29,12 +38,21 @@ export class JokeList extends Component {
           <h1 className="JokeList-title">
             <span>Dad</span> Jokes
           </h1>
-          <img src="https://assets.dryicons.com/uploads/icon/svg/8927/0eb14c71-38f2-433a-bfc8-23d9c99b3647.svg" />
+          <img
+            src="https://assets.dryicons.com/uploads/icon/svg/8927/0eb14c71-38f2-433a-bfc8-23d9c99b3647.svg"
+            alt="laughing emoji"
+          />
           <button className="JokeList-getmore">New Jokes</button>
         </div>
         <div className="JokeList-jokes">
           {this.state.jokes.map(j => (
-            <div>{j}</div>
+            <Joke
+              key={j.id}
+              votes={j.votes}
+              text={j.text}
+              upvote={() => this.handleVote(j.id, 1)}
+              downvote={() => this.handleVote(j.id, -1)}
+            />
           ))}
         </div>
       </div>
